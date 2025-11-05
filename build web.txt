@@ -1,0 +1,44 @@
+echo > Setup required Environment
+echo -------------------------------------
+SET RAYLIB_PATH=C:\raylib\raylib
+SET EMSDK_PATH=C:\raylib\emsdk
+SET EMSCRIPTEN_PATH=$(EMSDK_PATH)\upstream\emscripten
+SET CLANG_PATH=$(EMSDK_PATH)\upstream\bin
+SET PYTHON_PATH=$(EMSDK_PATH)\python\3.9.2-nuget_64bit
+SET NODE_PATH=$(EMSDK_PATH)\node\20.18.0_64bit\bin
+ENV_SET PATH=$(EMSDK_PATH);$(EMSCRIPTEN_PATH);$(CLANG_PATH);$(NODE_PATH);$(PYTHON_PATH)
+echo Set required web compilation options
+SET CC=$(EMSDK_PATH)\upstream\emscripten\emcc
+SET CFLAGS=-Wall -sSTACK_SIZE=128mb -sINITIAL_MEMORY=805306368 -D_DEFAULT_SOURCE -Wno-missing-braces -Wunused-result -O3 -I. -I$(RAYLIB_PATH)\src -I$(RAYLIB_PATH)\external -DPLATFORM_WEB
+SET LDFLAGS=-L. -L$(RAYLIB_PATH)\src -sUSE_GLFW=3 -sEXPORTED_RUNTIME_METHODS=ccall -sASYNCIFY --shell-file $(RAYLIB_PATH)\src\shell.html
+SET LDLIBS=$(RAYLIB_PATH)\src\libraylib.web.a
+// TODO: If your game uses some resources/assets, set the directory path as shown in the commented line!
+SET RESOURCES=--preload-file ..\assets
+//SET RESOURCES=--preload-file $(RESOURCES_PATH)
+cd $(CURRENT_DIRECTORY)
+echo
+echo > Clean latest build
+echo ------------------------
+cmd /c IF EXIST $(NAME_PART).html del /F $(NAME_PART).html
+cmd /c IF EXIST $(NAME_PART).wasm del /F $(NAME_PART).wasm
+cmd /c IF EXIST $(NAME_PART).js del /F $(NAME_PART).js
+cmd /c IF EXIST $(NAME_PART).data del /F $(NAME_PART).data
+echo
+echo > Saving Current File
+echo -------------------------
+npp_save
+echo
+echo > Compile program
+echo -----------------------
+cmd /c $(CC) --version
+cmd /c $(CC) -o index.html main.cpp $(CFLAGS) $(LDFLAGS) $(LDLIBS) $(RESOURCES)
+echo
+echo > Reset Environment
+echo --------------------------
+ENV_UNSET PATH
+echo
+echo > Execute program: Use local server!
+echo ----------------------------------------------
+// WARNING: To launch the web, a local host is required
+NPP_RUN python -m http.server 8080
+cmd /c IF EXIST index.html explorer "http:\\localhost:8080/index.html"

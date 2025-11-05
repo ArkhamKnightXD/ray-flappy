@@ -1,4 +1,4 @@
 *.exe
 *.dsym
-*.txt
+high-score.txt
 index*
